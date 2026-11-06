@@ -6,7 +6,7 @@ Flip switches to make a pattern, turn knobs to set the weights, and watch a mete
 
 No installation, no coding, no maths background needed. If you can flick a switch and turn a dial, you can use this.
 
-![The Perceptron Bench interface: input switches and lights on the left, 16 weight knobs and a bias knob in the middle, and an output meter on the right showing the decision "X"](images/interface-board.png)
+![The Perceptron Bench interface: input switches and lights on the left, 16 weight knobs and a bias knob in the middle, and an output meter on the right showing the decision "X"](interface-board.png)
 
 ---
 
