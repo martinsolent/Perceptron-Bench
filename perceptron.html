@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perceptron Bench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--panel2:#1f252d;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--pos:#58a6ff;--neg:#f0883e;--led:#ff5a4f;--ok:#3fb950;--bad:#f85149;--hl:#e3b341}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 'DM Sans',system-ui,sans-serif}
+.wrap{max-width:1200px;margin:0 auto;padding:20px 14px 48px}
+header h1{margin:0 0 4px;font-size:clamp(22px,4vw,30px);letter-spacing:-.01em}
+header p{margin:0;color:var(--muted);max-width:75ch}
+.board{display:grid;gap:16px;margin-top:20px;grid-template-columns:minmax(0,1fr) minmax(0,1.45fr) minmax(0,1.1fr);align-items:start}
+@media(max-width:920px){.board{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;font-weight:700}
+h2 span{color:var(--text)}
+button{font:inherit;font-size:14px;color:var(--text);background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--muted)}
+button.primary{background:#238636;border-color:#2ea043}
+button.addpos{border-color:var(--pos)} button.addneg{border-color:var(--neg)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;justify-content:center}
+.hint{font-size:12.5px;color:var(--muted);margin:10px 0 0;text-align:center}
+
+/* inputs */
+.inrow{display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap}
+.switches{display:grid;grid-template-columns:repeat(4,38px);gap:9px;padding:14px;background:#090b0e;border-radius:10px;border:1px solid #000;box-shadow:inset 0 1px 0 #2a2f36}
+.sw{width:38px;height:38px;border-radius:50%;padding:0;background:radial-gradient(circle at 35% 30%,#59606a,#1a1e24 70%);border:2px solid #6b727c;position:relative}
+.sw::after{content:'';position:absolute;left:50%;top:50%;width:10px;height:22px;margin:-11px 0 0 -5px;border-radius:5px;background:linear-gradient(90deg,#9aa0a6,#f4f4f4 45%,#9aa0a6);box-shadow:0 2px 3px rgba(0,0,0,.6);transform:translateY(6px);transition:transform .14s}
+.sw.on::after{transform:translateY(-6px)}
+.sw:focus-visible{outline:2px solid var(--pos);outline-offset:2px}
+.leds{display:grid;grid-template-columns:repeat(4,22px);gap:10px;padding:14px;background:#1d5232;border-radius:8px;background-image:radial-gradient(#2b6b44 1px,transparent 1.5px);background-size:8px 8px}
+.led{width:22px;height:22px;border-radius:50%;background:#5c1f1b;box-shadow:inset 0 -2px 3px rgba(0,0,0,.5);transition:background .15s,box-shadow .15s}
+.led.on{background:radial-gradient(circle at 40% 35%,#ffd6cf,#ff5a4f 45%,#c4271c);box-shadow:0 0 12px 3px rgba(255,90,79,.6)}
+
+/* knobs */
+.knobs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 4px;background:#090b0e;border:1px solid #000;border-radius:10px;padding:14px 6px;box-shadow:inset 0 1px 0 #2a2f36}
+.knob{display:flex;flex-direction:column;align-items:center;position:relative;transition:opacity .2s}
+.knob.off{opacity:.38}
+.dial{width:60px;height:60px;touch-action:none;cursor:ns-resize;border-radius:50%;outline:none;user-select:none;-webkit-user-select:none}
+.dial:focus-visible{box-shadow:0 0 0 2px var(--pos)}
+.dial svg{width:100%;height:100%;display:block}
+.track{fill:none;stroke:#2d333b;stroke-width:5;stroke-linecap:round}
+.fill{fill:none;stroke-width:5;stroke-linecap:round;stroke:transparent}
+.knob.pos .fill{stroke:var(--pos)} .knob.neg .fill{stroke:var(--neg)}
+.cap{fill:#f1f1ee;stroke:#7a7a7a;stroke-width:1}
+.ptr{stroke:#15181c;stroke-width:3;stroke-linecap:round}
+.ticks line{stroke:#59606a;stroke-width:1.5}
+.kval{font:600 12px 'JetBrains Mono',monospace;color:var(--muted)}
+.knob.pos .kval{color:var(--pos)} .knob.neg .kval{color:var(--neg)}
+.kdot{position:absolute;top:1px;right:calc(50% - 34px);width:7px;height:7px;border-radius:50%;background:#3a1512}
+.knob:not(.off) .kdot{background:var(--led);box-shadow:0 0 6px var(--led)}
+.knob.bias .kdot{display:none}
+.biasrow{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:12px}
+.biasrow .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+
+/* meter */
+.meter{background:linear-gradient(#262a30,#0f1114);border-radius:14px;padding:12px;border:1px solid #000;box-shadow:inset 0 1px 0 #40454c}
+.meter svg{width:100%;display:block}
+#needle{transform-origin:150px 180px;transform-box:view-box;transition:transform .75s cubic-bezier(.25,1.45,.5,1)}
+.readout{font-family:'JetBrains Mono',monospace;font-size:13px;margin-top:12px;color:var(--muted);text-align:center;line-height:1.7}
+.readout b{color:var(--text);font-weight:600}
+.verdict{text-align:center;font-size:30px;font-weight:700;margin-top:4px;min-height:44px}
+.verdict small{display:block;font-size:12px;font-weight:500;color:var(--muted)}
+.verdict.pos{color:var(--pos)} .verdict.neg{color:var(--neg)}
+
+/* training */
+.train{margin-top:16px}
+.tctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tctl label{font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:center}
+select{font:inherit;font-size:14px;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 10px}
+.status{font-family:'JetBrains Mono',monospace;font-size:13px;margin-top:14px;padding:8px 12px;background:var(--panel2);border-radius:8px;display:flex;flex-wrap:wrap;gap:6px 18px}
+.status b{color:var(--text)}
+.tgrid{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:18px;margin-top:16px}
+@media(max-width:920px){.tgrid{grid-template-columns:1fr 1fr}.logbox{grid-column:1/-1}}
+.classcol h3{font-size:14px;margin:0 0 4px}
+.classcol .sub{font-size:12px;color:var(--muted);margin:0 0 10px}
+.classcol.pos h3{color:var(--pos)} .classcol.neg h3{color:var(--neg)}
+.thumbs{display:flex;flex-wrap:wrap;gap:12px;min-height:50px}
+.thumb{position:relative}
+.thumb .load{padding:5px;border-radius:8px;background:var(--panel2);display:block}
+.thumb.cur .load{border-color:var(--hl);box-shadow:0 0 0 1px var(--hl)}
+.mini{display:grid;grid-template-columns:repeat(4,8px);gap:2px}
+.mini i{width:8px;height:8px;background:#2d333b;border-radius:2px}
+.mini i.on{background:var(--led)}
+.badge{position:absolute;bottom:-6px;right:-6px;font-size:10px;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;font-weight:700;pointer-events:none}
+.badge.ok{background:var(--ok);color:#04130a}.badge.bad{background:var(--bad);color:#fff}
+.del{position:absolute;top:-7px;right:-7px;width:18px;height:18px;padding:0;border-radius:50%;font-size:11px;line-height:16px;opacity:.75}
+.empty{font-size:13px;color:var(--muted);font-style:italic}
+.logbox h3{font-size:14px;margin:0 0 8px}
+.log{list-style:none;padding:0;margin:0;font-size:13px;color:var(--muted)}
+.log li{padding:7px 0;border-bottom:1px solid var(--border)}
+.log li:first-child{color:var(--text)}
+.about{margin-top:16px}
+.about ul{margin:0;padding-left:20px;color:var(--muted)} .about li{margin:5px 0} .about b{color:var(--text)}
+code{font-family:'JetBrains Mono',monospace;font-size:13px;background:var(--panel2);padding:1px 5px;border-radius:4px;color:var(--text)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Perceptron Bench</h1>
+  <p>A 16-input perceptron you can play with, modelled on hand-wired analog builds and Rosenblatt's Mark&nbsp;I. Flip switches to make a pattern, turn the knobs to set weights, and watch the meter. Or let the learning rule turn the knobs for you.</p>
+</header>
+
+<main class="board">
+  <section class="panel" aria-labelledby="h-in">
+    <h2 id="h-in">1 · <span>Inputs</span> x<sub>i</sub></h2>
+    <div class="inrow">
+      <div class="switches" id="switches" role="group" aria-label="Input switches"></div>
+      <div class="leds" id="leds" aria-hidden="true"></div>
+    </div>
+    <div class="row-btns">
+      <button id="clearIn">Clear</button>
+      <button id="invertIn">Invert</button>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-w">
+    <h2 id="h-w">2 · <span>Weights</span> w<sub>i</sub></h2>
+    <div class="knobs" id="knobs"></div>
+    <div class="biasrow"><span class="lbl">Bias b</span><div id="biasSlot"></div></div>
+    <div class="row-btns">
+      <button id="zeroW">Zero all</button>
+      <button id="randW">Randomise</button>
+    </div>
+    <p class="hint">Drag a knob up or down, scroll, or use the arrow keys. Double-tap to zero. Dimmed knobs sit on switches that are off, so they add nothing.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="h-out">
+    <h2 id="h-out">3 · <span>Output</span> Σ w<sub>i</sub>x<sub>i</sub> + b</h2>
+    <div class="meter"><svg id="meterSvg" viewBox="0 0 300 210" role="img" aria-label="Output meter"></svg></div>
+    <div class="readout" id="readout"></div>
+    <div class="verdict" id="verdict" aria-live="polite"></div>
+  </section>
+</main>
+
+<section class="panel train" aria-labelledby="h-t">
+  <h2 id="h-t">4 · <span>Train it</span></h2>
+  <div class="tctl">
+    <label>Task
+      <select id="preset">
+        <option value="xo">X vs O</option>
+        <option value="tl">T vs L</option>
+        <option value="lr">Left vs Right</option>
+        <option value="xor">XOR (the impossible one)</option>
+        <option value="empty">Empty: build your own</option>
+      </select>
+    </label>
+    <label>Step size
+      <select id="lr"><option>1</option><option>3</option><option selected>5</option><option>10</option></select>
+    </label>
+    <label>Speed
+      <select id="speed"><option value="slow">Slow</option><option value="fast">Fast</option></select>
+    </label>
+  </div>
+  <div class="row-btns" style="justify-content:flex-start">
+    <button id="stepBtn">Step ›</button>
+    <button id="autoBtn" class="primary">▶ Auto-train</button>
+    <button id="addPos" class="addpos">+ Add pattern as X</button>
+    <button id="addNeg" class="addneg">+ Add pattern as O</button>
+  </div>
+  <div class="status" id="status"></div>
+  <div class="tgrid">
+    <div class="classcol pos"><h3 id="posTitle"></h3><p class="sub">Needle should swing right →</p><div class="thumbs" id="posThumbs"></div></div>
+    <div class="classcol neg"><h3 id="negTitle"></h3><p class="sub">← Needle should swing left</p><div class="thumbs" id="negThumbs"></div></div>
+    <div class="logbox"><h3>What just happened</h3><ul class="log" id="log"></ul></div>
+  </div>
+</section>
+
+<section class="panel about" aria-labelledby="h-a">
+  <h2 id="h-a">How it works</h2>
+  <ul>
+    <li>Each switch is an input <b>x<sub>i</sub></b>, either 0 or 1. Each knob is a weight <b>w<sub>i</sub></b> between −30 and +30.</li>
+    <li>The meter shows <code>Σ wᵢxᵢ + b</code>. Only knobs on switches that are on count. Needle right means the first class; needle left means the second.</li>
+    <li><b>Learning rule:</b> show it an example. If the needle swings the wrong way, add <code>step × target</code> to every weight whose switch is on, and to the bias (target is +1 or −1). Repeat until a whole pass has no mistakes.</li>
+    <li>The <b>perceptron convergence theorem</b> says this always ends if a straight line (a hyperplane) can separate the two classes. XOR can't be separated that way, so it never settles. Minsky and Papert made this limitation famous in 1969.</li>
+    <li><b>Try this:</b> train X vs O, then read the 16 knobs as a 4×4 picture. Blue weights sit where X has pixels and O doesn't.</li>
+  </ul>
+</section>
+</div>
+
+<script>
+const N=16, WMAX=30, METER_MAX=100, MAX_EPOCHS=30;
+const P=s=>s.replace(/\s/g,'').split('').map(Number);
+const PRESETS={
+  xo:{pos:'X',neg:'O',posP:['1001 0110 0110 1001','1001 0110 0110 0001','1000 0110 0110 1001'],negP:['1111 1001 1001 1111','0110 1001 1001 0110','1111 1001 1001 0111']},
+  tl:{pos:'T',neg:'L',posP:['1111 0110 0110 0110','1110 0100 0100 0100','0111 0010 0010 0010'],negP:['1000 1000 1000 1111','1000 1000 1000 1110','0100 0100 0100 0111']},
+  lr:{pos:'Left',neg:'Right',posP:['1000 1000 1000 1000','1100 1100 0000 0000','0000 0000 1100 1100','1100 1000 1100 1000'],negP:['0001 0001 0001 0001','0011 0011 0000 0000','0000 0000 0011 0011','0011 0001 0011 0001']},
+  xor:{pos:'One corner',neg:'None or both',posP:['1000 0000 0000 0000','0000 0000 0000 0001'],negP:['0000 0000 0000 0000','1000 0000 0000 0001'],note:'XOR: is exactly one of the two corners lit? No single set of weights can do this. Press Auto-train and watch it go round in circles.'},
+  empty:{pos:'A',neg:'B',posP:[],negP:[],note:'Empty dataset. Make a pattern with the switches, then add it to A or B.'}
+};
+const S={x:Array(N).fill(0),w:Array(N).fill(0),b:0,data:[],pos:'X',neg:'O',idx:0,epoch:0,errs:0,cur:-1,auto:false,busy:false};
+const $=id=>document.getElementById(id);
+const clampW=v=>Math.max(-WMAX,Math.min(WMAX,v));
+const fmt=v=>v>0?'+'+v:v<0?'−'+(-v):'0';
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ---------- geometry ---------- */
+function polar(cx,cy,r,deg){const a=deg*Math.PI/180;return[cx+r*Math.sin(a),cy-r*Math.cos(a)]}
+function arcPath(cx,cy,r,a0,a1){if(a1<a0)[a0,a1]=[a1,a0];const[p0x,p0y]=polar(cx,cy,r,a0),[p1x,p1y]=polar(cx,cy,r,a1);return`M${p0x.toFixed(2)} ${p0y.toFixed(2)}A${r} ${r} 0 ${a1-a0>180?1:0} 1 ${p1x.toFixed(2)} ${p1y.toFixed(2)}`}
+
+/* ---------- switches + LEDs ---------- */
+const swEls=[],ledEls=[];
+for(let i=0;i<N;i++){
+  const b=document.createElement('button');b.className='sw';b.setAttribute('aria-label',`Input ${i+1} (row ${Math.floor(i/4)+1}, column ${i%4+1})`);
+  b.onclick=()=>{S.x[i]^=1;S.cur=-1;render()};$('switches').appendChild(b);swEls.push(b);
+  const l=document.createElement('div');l.className='led';$('leds').appendChild(l);ledEls.push(l);
+}
+$('clearIn').onclick=()=>{S.x.fill(0);S.cur=-1;render()};
+$('invertIn').onclick=()=>{S.x=S.x.map(v=>1-v);S.cur=-1;render()};
+
+/* ---------- knobs ---------- */
+let tickStr='';[-135,-67.5,0,67.5,135].forEach(a=>{const[x1,y1]=polar(32,32,29,a),[x2,y2]=polar(32,32,31.5,a);tickStr+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`});
+function makeKnob(parent,label,get,set,cls=''){
+  const wrap=document.createElement('div');wrap.className='knob '+cls;
+  wrap.innerHTML=`<div class="dial" tabindex="0" role="slider" aria-label="${label}" aria-valuemin="-30" aria-valuemax="30"><svg viewBox="0 0 64 64" aria-hidden="true"><g class="ticks">${tickStr}</g><path class="track" d="${arcPath(32,32,25,-135,135)}"/><path class="fill"/><circle class="cap" cx="32" cy="32" r="16"/><line class="ptr" x1="32" y1="32" x2="32" y2="19"/></svg></div><div class="kval"></div><span class="kdot"></span>`;
+  parent.appendChild(wrap);
+  const dial=wrap.querySelector('.dial'),fill=wrap.querySelector('.fill'),ptr=wrap.querySelector('.ptr'),kval=wrap.querySelector('.kval');
+  let sy,sx,sv,moved,lastTap=0;
+  dial.addEventListener('pointerdown',e=>{dial.setPointerCapture(e.pointerId);sy=e.clientY;sx=e.clientX;sv=get();moved=false;e.preventDefault()});
+  dial.addEventListener('pointermove',e=>{if(!dial.hasPointerCapture(e.pointerId))return;const d=((sy-e.clientY)+(e.clientX-sx))/3;if(Math.abs(d)>=1)moved=true;const v=clampW(Math.round(sv+d));if(v!==get())set(v)});
+  dial.addEventListener('pointerup',()=>{if(!moved){const now=Date.now();if(now-lastTap<350){set(0);lastTap=0}else lastTap=now}dial.focus()});
+  dial.addEventListener('wheel',e=>{e.preventDefault();set(clampW(get()+(e.deltaY<0?1:-1)))},{passive:false});
+  dial.addEventListener('keydown',e=>{const v=get(),m={ArrowUp:1,ArrowRight:1,ArrowDown:-1,ArrowLeft:-1,PageUp:5,PageDown:-5}[e.key];
+    if(m!==undefined){set(clampW(v+m));e.preventDefault()}else if(e.key==='Home'){set(-WMAX);e.preventDefault()}else if(e.key==='End'){set(WMAX);e.preventDefault()}else if(e.key==='0'){set(0)}});
+  return{wrap,update(){const v=get(),a=v/WMAX*135;ptr.setAttribute('transform',`rotate(${a} 32 32)`);fill.setAttribute('d',v?arcPath(32,32,25,Math.min(0,a),Math.max(0,a)):'');
+    wrap.classList.toggle('pos',v>0);wrap.classList.toggle('neg',v<0);kval.textContent=fmt(v);dial.setAttribute('aria-valuenow',v)}};
+}
+const knobs=[];
+for(let i=0;i<N;i++)knobs.push(makeKnob($('knobs'),`Weight ${i+1}`,()=>S.w[i],v=>{S.w[i]=v;render()}));
+const biasKnob=makeKnob($('biasSlot'),'Bias',()=>S.b,v=>{S.b=v;render()},'bias');
+$('zeroW').onclick=()=>{S.w.fill(0);S.b=0;render();log('All weights and the bias set to zero.')};
+$('randW').onclick=()=>{S.w=S.w.map(()=>Math.round(Math.random()*20-10));S.b=Math.round(Math.random()*20-10);render();log('Weights randomised between −10 and +10.')};
+
+/* ---------- meter ---------- */
+(function buildMeter(){
+  const cx=150,cy=180,r=118;let s=`<rect x="10" y="10" width="280" height="190" rx="10" fill="#efe9d8"/>`;
+  s+=`<path d="${arcPath(cx,cy,r-6,-50,0)}" stroke="#f0883e" stroke-width="5" fill="none" opacity=".75"/>`;
+  s+=`<path d="${arcPath(cx,cy,r-6,0,50)}" stroke="#3b82f6" stroke-width="5" fill="none" opacity=".75"/>`;
+  s+=`<path d="${arcPath(cx,cy,r,-50,50)}" stroke="#222" stroke-width="1.2" fill="none"/>`;
+  for(let v=-100;v<=100;v+=10){const a=v/METER_MAX*50,major=v%50===0,[x1,y1]=polar(cx,cy,r,a),[x2,y2]=polar(cx,cy,r+(major?12:6),a);
+    s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#222" stroke-width="${major?1.8:1}"/>`;
+    if(major){const[tx,ty]=polar(cx,cy,r+24,a);s+=`<text x="${tx}" y="${ty+4}" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="13" fill="#222">${Math.abs(v)}</text>`}}
+  s+=`<text x="150" y="140" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="12" letter-spacing="2" fill="#333">OUTPUT UNITS</text>`;
+  s+=`<text id="mNeg" x="24" y="190" font-family="DM Sans,sans-serif" font-size="13" font-weight="700" fill="#c25e12"></text>`;
+  s+=`<text id="mPos" x="276" y="190" text-anchor="end" font-family="DM Sans,sans-serif" font-size="13" font-weight="700" fill="#1d5fd1"></text>`;
+  s+=`<text id="mPeg" x="150" y="158" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#b42318"></text>`;
+  s+=`<g id="needle"><line x1="${cx}" y1="${cy+10}" x2="${cx}" y2="${cy-r+4}" stroke="#111" stroke-width="2.2" stroke-linecap="round"/></g>`;
+  s+=`<circle cx="${cx}" cy="${cy}" r="9" fill="#1b1b1b"/><circle cx="${cx}" cy="${cy}" r="3" fill="#777"/>`;
+  $('meterSvg').innerHTML=s;
+})();
+
+/* ---------- maths ---------- */
+const dot=(w,x)=>w.reduce((s,wi,i)=>s+wi*x[i],0);
+const net=x=>dot(S.w,x)+S.b;
+
+/* ---------- render ---------- */
+function render(){
+  for(let i=0;i<N;i++){const on=!!S.x[i];swEls[i].classList.toggle('on',on);swEls[i].setAttribute('aria-pressed',on);ledEls[i].classList.toggle('on',on);knobs[i].wrap.classList.toggle('off',!on);knobs[i].update()}
+  biasKnob.update();
+  const ws=dot(S.w,S.x),t=ws+S.b;
+  const ang=Math.max(-METER_MAX,Math.min(METER_MAX,t))/METER_MAX*50;
+  $('needle').style.transform=`rotate(${ang}deg)`;
+  $('mPeg').textContent=Math.abs(t)>METER_MAX?'OFF SCALE':'';
+  $('mNeg').textContent='← '+S.neg;$('mPos').textContent=S.pos+' →';
+  $('readout').innerHTML=`Σ wᵢxᵢ = <b>${fmt(ws)}</b> &nbsp; bias = <b>${fmt(S.b)}</b><br>output = <b>${fmt(t)}</b>`;
+  const v=$('verdict');v.className='verdict '+(t>0?'pos':t<0?'neg':'');
+  v.innerHTML=t>0?`${esc(S.pos)}<small>positive output</small>`:t<0?`${esc(S.neg)}<small>negative output</small>`:`—<small>undecided (exactly zero)</small>`;
+  renderData();
+}
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function renderData(){
+  $('posTitle').textContent=S.pos;$('negTitle').textContent=S.neg;
+  $('addPos').textContent='+ Add pattern as '+S.pos;$('addNeg').textContent='+ Add pattern as '+S.neg;
+  const cols={1:$('posThumbs'),'-1':$('negThumbs')};cols[1].innerHTML='';cols[-1].innerHTML='';
+  let correct=0;
+  S.data.forEach((ex,k)=>{
+    const ok=ex.t*net(ex.p)>0;if(ok)correct++;
+    const d=document.createElement('div');d.className='thumb'+(k===S.cur?' cur':'');
+    d.innerHTML=`<button class="load" aria-label="Load example ${k+1}"><div class="mini">${ex.p.map(v=>`<i class="${v?'on':''}"></i>`).join('')}</div></button><span class="badge ${ok?'ok':'bad'}">${ok?'✓':'✗'}</span><button class="del" aria-label="Remove example ${k+1}">×</button>`;
+    d.querySelector('.load').onclick=()=>{S.x=ex.p.slice();S.cur=k;render()};
+    d.querySelector('.del').onclick=()=>{if(S.auto)return;S.data.splice(k,1);S.idx=0;S.errs=0;S.cur=-1;render()};
+    cols[ex.t].appendChild(d);
+  });
+  [1,-1].forEach(t=>{if(!cols[t].children.length)cols[t].innerHTML='<span class="empty">No examples yet</span>'});
+  const n=S.data.length;
+  $('status').innerHTML=`<span>Epoch <b>${S.epoch}</b></span><span>Next example <b>${n?S.idx+1:0}/${n}</b></span><span>Training accuracy <b>${correct}/${n}</b></span><span>Mistakes this pass <b>${S.errs}</b></span>`;
+  $('stepBtn').disabled=S.auto||!n;$('autoBtn').disabled=!n&&!S.auto;
+}
+function log(msg){const li=document.createElement('li');li.textContent=msg;const L=$('log');L.prepend(li);while(L.children.length>5)L.lastChild.remove()}
+
+/* ---------- training ---------- */
+async function step(){
+  if(S.busy||!S.data.length)return true;S.busy=true;
+  const fast=$('speed').value==='fast',lr=+$('lr').value;
+  const k=S.idx,ex=S.data[k];S.x=ex.p.slice();S.cur=k;render();
+  await sleep(fast?140:750);
+  const s=net(ex.p),want=ex.t>0?S.pos:S.neg,got=s>0?S.pos:s<0?S.neg:'undecided';
+  if(ex.t*s<=0){
+    let lit=0;for(let i=0;i<N;i++)if(ex.p[i]){S.w[i]=clampW(S.w[i]+lr*ex.t);lit++}
+    S.b=clampW(S.b+lr*ex.t);S.errs++;
+    log(`✗ Example ${k+1}: wanted ${want}, got ${got} (${fmt(s)}). ${ex.t>0?'Added':'Subtracted'} ${lr} ${ex.t>0?'to':'from'} the ${lit} lit weight${lit===1?'':'s'} and the bias.`);
+  }else log(`✓ Example ${k+1}: wanted ${want}, got ${got} (${fmt(s)}). No change.`);
+  render();await sleep(fast?100:550);
+  let done=false;S.idx++;
+  if(S.idx>=S.data.length){S.idx=0;S.epoch++;
+    if(S.errs===0){log(`🎉 Converged: a whole pass (epoch ${S.epoch}) with no mistakes. The knobs now separate ${S.pos} from ${S.neg}.`);done=true}
+    else if(S.epoch>=MAX_EPOCHS){log(`⚠️ ${S.epoch} epochs and still making mistakes. These classes may not be linearly separable.`);done=true}
+    S.errs=0;}
+  S.busy=false;render();return done;
+}
+$('stepBtn').onclick=()=>step();
+$('autoBtn').onclick=async()=>{
+  if(S.auto){S.auto=false;setAutoBtn();return}
+  if(S.epoch>=MAX_EPOCHS)S.epoch=0;
+  S.auto=true;setAutoBtn();render();
+  while(S.auto){const done=await step();if(done)break}
+  S.auto=false;setAutoBtn();render();
+};
+function setAutoBtn(){$('autoBtn').textContent=S.auto?'⏸ Pause':'▶ Auto-train'}
+function addEx(t){S.data.push({p:S.x.slice(),t});S.idx=0;S.errs=0;S.cur=S.data.length-1;render();log(`Added the current pattern as ${t>0?S.pos:S.neg}.`)}
+$('addPos').onclick=()=>addEx(1);$('addNeg').onclick=()=>addEx(-1);
+
+function loadPreset(key){
+  S.auto=false;setAutoBtn();
+  const p=PRESETS[key];S.pos=p.pos;S.neg=p.neg;
+  S.data=[...p.posP.map(s=>({p:P(s),t:1})),...p.negP.map(s=>({p:P(s),t:-1}))];
+  S.w.fill(0);S.b=0;S.idx=0;S.epoch=0;S.errs=0;
+  S.cur=S.data.length?0:-1;S.x=S.data.length?S.data[0].p.slice():Array(N).fill(0);
+  $('log').innerHTML='';
+  log(p.note||`Loaded “${p.pos} vs ${p.neg}”. Weights are at zero. Press Step to watch the rule work one example at a time, or Auto-train.`);
+  render();
+}
+$('preset').onchange=e=>loadPreset(e.target.value);
+loadPreset('xo');
+</script>
+</body>
+</html>
