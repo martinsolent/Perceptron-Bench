@@ -1,5 +1,3 @@
-# Perceptron Bench
-
 **An interactive, in-browser model of the very first kind of artificial neural network: the perceptron.**
 
 Flip switches to make a pattern, turn knobs to set the weights, and watch a meter needle decide which category the pattern belongs to. Then press a button and watch the machine teach itself.
