@@ -1,3 +1,9 @@
+
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/l-9ALe3U-Fg?si=9Iv2VrBlLuKidx1W" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+This video explains what a Perceptron Bench is and how it works
+
 **An interactive, in-browser model of the very first kind of artificial neural network: the perceptron.**
 
 Flip switches to make a pattern, turn knobs to set the weights, and watch a meter needle decide which category the pattern belongs to. Then press a button and watch the machine teach itself.
