@@ -1,4 +1,4 @@
-[This video explains what a Perceptron Bench is and how it works](https://youtu.be/l-9ALe3U-Fg?si=j799-3BdfknWoWTs)
+# Perceptron Bench
 
 **An interactive, in-browser model of the very first kind of artificial neural network: the perceptron.**
 
@@ -6,7 +6,7 @@ Flip switches to make a pattern, turn knobs to set the weights, and watch a mete
 
 No installation, no coding, no maths background needed. If you can flick a switch and turn a dial, you can use this.
 
-![The Perceptron Bench interface: input switches and lights on the left, 16 weight knobs and a bias knob in the middle, and an output meter on the right showing the decision "X"](interface-board.png)
+![The Perceptron Bench interface: input switches and lights on the left, 16 weight knobs and a bias knob in the middle, and an output meter on the right showing the decision "X"](images/interface-board.png)
 
 ---
 
@@ -85,7 +85,7 @@ A perceptron works the same way:
 
 Here's how that maps onto the parts of the bench:
 
-![Diagram: inputs x1 to x16 (the switches) each pass through a weight knob w1 to w16 into a summing node Σ, along with a bias knob. Σ feeds a decision box: total above zero gives X, otherwise O. Only lit inputs pass their weight through.](neuron-to-bench.svg)
+![Diagram: inputs x1 to x16 (the switches) each pass through a weight knob w1 to w16 into a summing node Σ, along with a bias knob. Σ feeds a decision box: total above zero gives X, otherwise O. Only lit inputs pass their weight through.](images/neuron-to-bench.svg)
 
 As a formula, the meter shows:
 
@@ -100,6 +100,8 @@ The clever part isn't the adding up. It's that **the machine can find good knob 
 ---
 
 ## Getting started
+
+> 🎬 **New to this?** Watch the 71-second explainer video at the top of the page first. Its full script is in [`video-script.md`](video-script.md).
 
 1. **Open** `perceptron.html` in any modern web browser (Chrome, Edge, Firefox or Safari). It works on laptops, tablets and phones.
 2. The page loads the **X vs O** task, with all knobs at zero. The needle sits in the middle because the machine has no opinion yet.
@@ -118,7 +120,7 @@ That's it. Everything else is exploring.
 
 The bench has four areas. The letters in the screenshots match the notes below.
 
-![Annotated screenshot of the top half of the bench, with labels A to F on the switches, lights, weight knobs, bias knob, meter and verdict](annotated-board.png)
+![Annotated screenshot of the top half of the bench, with labels A to F on the switches, lights, weight knobs, bias knob, meter and verdict](images/annotated-board.png)
 
 | Label | Part | What it does |
 |:---:|---|---|
@@ -153,7 +155,7 @@ The bench has four areas. The letters in the screenshots match the notes below.
 
 ### 4 · Train it
 
-![Annotated screenshot of the training panel, with labels G to N on the task menu, Step, Auto-train, Add pattern buttons, status bar, the two example columns and the activity log](annotated-training.png)
+![Annotated screenshot of the training panel, with labels G to N on the task menu, Step, Auto-train, Add pattern buttons, status bar, the two example columns and the activity log](images/annotated-training.png)
 
 | Label | Part |
 |:---:|---|
@@ -219,7 +221,7 @@ These work for self-study or as a class exercise. Each one takes about 5–10 mi
 2. Look at the 16 knobs as if they were a 4×4 picture.
 3. *Notice:* blue knobs sit where X has pixels and O doesn't. Orange knobs sit where O has pixels and X doesn't. The weights *are* what the machine has learned, and you can see them.
 
-![Diagram: the training X pattern and training O pattern side by side, then the learned 4x4 weight map. The centre four weights are +5 (blue), the edge-middle weights are −5 (orange), and the four corners are 0 (grey) because both shapes share them.](learned-weights.svg)
+![Diagram: the training X pattern and training O pattern side by side, then the learned 4x4 weight map. The centre four weights are +5 (blue), the edge-middle weights are −5 (orange), and the four corners are 0 (grey) because both shapes share them.](images/learned-weights.svg)
 
 ### Activity 4: Test it on something new
 
@@ -298,7 +300,7 @@ A single perceptron can only separate the two groups with what amounts to a **st
 
 Plot the four cases on a grid and the problem becomes visible:
 
-![Three plots of the four on/off combinations of two corners. AND and OR can each be split into "yes" and "no" by one dashed straight line. In XOR the "yes" points sit on one diagonal and the "no" points on the other, so no single straight line separates them.](xor-separability.svg)
+![Three plots of the four on/off combinations of two corners. AND and OR can each be split into "yes" and "no" by one dashed straight line. In XOR the "yes" points sit on one diagonal and the "no" points on the other, so no single straight line separates them.](images/xor-separability.svg)
 
 To say "yes" when only the top-left is on, its weight needs to be positive. The same goes for the bottom-right. But then when *both* are on, the two positives add up to an even bigger "yes", which is the wrong answer. No combination of knob settings gets all four rows right.
 
@@ -310,7 +312,7 @@ This is the limitation Minsky and Papert highlighted in 1969, and it contributed
 
 The fix turned out to be **layers**. Feed the outputs of several perceptrons into *another* perceptron, and the network can carve up the input space with many lines instead of one. That solves XOR, and much more.
 
-![Left: a single neuron with two inputs, which can't solve XOR. Right: the same two inputs feeding two hidden neurons (OR and AND), which feed an output neuron. XOR becomes "OR, but not AND", which is solvable.](one-to-many.svg)
+![Left: a single neuron with two inputs, which can't solve XOR. Right: the same two inputs feeding two hidden neurons (OR and AND), which feed an output neuron. XOR becomes "OR, but not AND", which is solvable.](images/one-to-many.svg)
 
 Modern networks follow the same basic recipe:
 
@@ -358,24 +360,31 @@ Suggested discussion questions:
 
 ```
 perceptron-bench/
-├── perceptron.html          ← the whole app
+├── perceptron.html          ← the whole app (with explainer video at the top)
 ├── README.md                ← this document
-├── interface-board.png
-├── annotated-board.png
-├── annotated-training.png
-├── neuron-to-bench.svg
-├── learned-weights.svg
-├── xor-separability.svg
-└── one-to-many.svg
+├── video-script.md          ← narration script for the explainer video
+├── media/
+│   ├── perceptron-explainer.mp4   ← 71-second narrated explainer
+│   ├── perceptron-explainer.vtt   ← subtitles (WebVTT)
+│   └── explainer-poster.jpg       ← video thumbnail
+└── images/
+    ├── interface-board.png
+    ├── annotated-board.png
+    ├── annotated-training.png
+    ├── neuron-to-bench.svg
+    ├── learned-weights.svg
+    ├── xor-separability.svg
+    └── one-to-many.svg
 ```
 
-> **About the diagrams:** the images are ordinary PNG and SVG files and display anywhere markdown is rendered, as long as they sit next to this README. The learning-rule flowchart is written in **Mermaid**. GitHub draws it automatically; some other markdown viewers (and some static-site themes) need Mermaid switched on, and otherwise show it as a code block.
+> **About the diagrams:** the images are ordinary PNG and SVG files and display anywhere markdown is rendered, as long as the `images/` folder sits next to this README. The learning-rule flowchart is written in **Mermaid**. GitHub draws it automatically; some other markdown viewers (and some static-site themes) need Mermaid switched on, and otherwise show it as a code block.
 
 ### Hosting
 
 - **GitHub Pages**: add the file to a repository (renaming it to `index.html` if you want it as the landing page), then enable Pages in the repository settings.
 - **Moodle or another VLE**: upload the file as a *File* resource set to open in a new window, or host it elsewhere and link or embed it with an iframe.
 - **Locally**: just double-click the file.
+- **The explainer video** plays from `media/`. To use a hosted copy instead (YouTube, Vimeo, Panopto, Stream), put its *embed* URL in the `data-embed` attribute near the top of `perceptron.html`, and the page will show it in an iframe.
 
 ### Key settings (in the script)
 

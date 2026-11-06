@@ -1,0 +1,61 @@
+WEBVTT
+
+1
+00:00:00.500 --> 00:00:05.680
+What is a perceptron? It's a 1958 idea that sits at the heart of modern AI.
+
+2
+00:00:07.101 --> 00:00:10.641
+It starts with an input. Here, a tiny four-by-four picture.
+
+3
+00:00:10.793 --> 00:00:13.693
+Each pixel is either on, a one, or off, a zero.
+
+4
+00:00:15.528 --> 00:00:18.498
+Every pixel gets a weight, set by its own knob.
+
+5
+00:00:18.644 --> 00:00:23.424
+Positive weights push the answer towards X. Negative weights push it towards O.
+
+6
+00:00:24.667 --> 00:00:27.807
+The perceptron adds up the weights of the pixels that are lit.
+
+7
+00:00:28.567 --> 00:00:32.147
+The total is plus twenty. Positive, so it answers X.
+
+8
+00:00:33.426 --> 00:00:36.546
+So how does it learn? We start with every knob at zero.
+
+9
+00:00:36.691 --> 00:00:40.701
+Show it an X. It gets it wrong, so we nudge the lit knobs towards X.
+
+10
+00:00:40.950 --> 00:00:43.890
+Now an O. Wrong again, so we nudge them towards O.
+
+11
+00:00:45.209 --> 00:00:47.369
+Try again, and now both are right.
+
+12
+00:00:50.036 --> 00:00:51.146
+It's learned!
+
+13
+00:00:53.064 --> 00:00:59.104
+But a single perceptron can only draw one straight line, so it can't solve problems like this one, called XOR.
+
+14
+00:00:59.252 --> 00:01:04.202
+Stack lots of them in layers, though, and you get the neural networks behind modern AI.
+
+15
+00:01:06.933 --> 00:01:09.233
+Try it yourself, with Perceptron Bench.

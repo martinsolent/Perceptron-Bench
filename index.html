@@ -97,6 +97,21 @@ select{font:inherit;font-size:14px;background:var(--panel2);color:var(--text);bo
 .log li:first-child{color:var(--text)}
 .about{margin-top:16px}
 .about ul{margin:0;padding-left:20px;color:var(--muted)} .about li{margin:5px 0} .about b{color:var(--text)}
+/* intro + video */
+.intro{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:24px;align-items:center;margin-top:20px}
+@media(max-width:920px){.intro{grid-template-columns:1fr}.intro .vid{order:-1}}
+.intro .kicker{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--hl);font-weight:700;margin:0 0 6px}
+.intro h2.big{font-size:22px;letter-spacing:0;text-transform:none;color:var(--text);margin:0 0 10px}
+.intro p{margin:0 0 12px;color:var(--muted)}
+.intro ol{margin:0 0 14px;padding-left:20px;color:var(--muted)} .intro li{margin:4px 0} .intro li b{color:var(--text)}
+.intro .cta{display:flex;gap:10px;flex-wrap:wrap}
+.intro a.btn{display:inline-block;text-decoration:none;font-size:14px;color:var(--text);background:#238636;border:1px solid #2ea043;border-radius:8px;padding:7px 14px}
+.intro a.btn.ghost{background:var(--panel2);border-color:var(--border)}
+.vid .frame{position:relative;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#000;border:1px solid var(--border)}
+.vid video,.vid iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.vid .missing{position:absolute;inset:0;display:none;place-items:center;text-align:center;padding:20px;color:var(--muted);font-size:14px}
+.vid .missing code{display:inline-block;margin-top:6px}
+.vid .meta{font-size:12.5px;color:var(--muted);margin-top:8px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
 code{font-family:'JetBrains Mono',monospace;font-size:13px;background:var(--panel2);padding:1px 5px;border-radius:4px;color:var(--text)}
 </style>
 </head>
@@ -106,6 +121,42 @@ code{font-family:'JetBrains Mono',monospace;font-size:13px;background:var(--pane
   <h1>Perceptron Bench</h1>
   <p>A 16-input perceptron you can play with, modelled on hand-wired analog builds and Rosenblatt's Mark&nbsp;I. Flip switches to make a pattern, turn the knobs to set weights, and watch the meter. Or let the learning rule turn the knobs for you.</p>
 </header>
+
+<!--
+  EXPLAINER VIDEO
+  By default the page plays media/perceptron-explainer.mp4 (keep the media/ folder next to this file).
+  To use a hosted copy instead (YouTube, Vimeo, Panopto, MS Stream…), paste its EMBED url into
+  data-embed below, e.g. data-embed="https://www.youtube-nocookie.com/embed/VIDEO_ID"
+  and the page will show it in an iframe.
+-->
+<section class="panel intro" aria-labelledby="h-intro">
+  <div>
+    <p class="kicker">Start here · 71-second explainer</p>
+    <h2 class="big" id="h-intro">What is a perceptron, and why should you care?</h2>
+    <p>Every modern AI system, from chatbots to face recognition, is built from huge numbers of one simple part: an <b style="color:var(--text)">artificial neuron</b>. The perceptron, invented by Frank Rosenblatt in 1958, was the first one that could <em>learn</em>. This short video shows how it works using the bench below.</p>
+    <ol>
+      <li><b>Inputs:</b> a tiny picture made of on/off pixels</li>
+      <li><b>Weights:</b> a knob for each pixel saying how much it counts</li>
+      <li><b>Decision:</b> add up the lit knobs. Positive means X, negative means O</li>
+      <li><b>Learning:</b> when it's wrong, nudge the knobs and try again</li>
+      <li><b>Limits:</b> why one neuron isn't enough, and how layers lead to modern AI</li>
+    </ol>
+    <div class="cta">
+      <a class="btn" href="#h-in">Skip to the bench ↓</a>
+      <a class="btn ghost" href="#h-a">How it works ↓</a>
+    </div>
+  </div>
+  <div class="vid">
+    <div class="frame" id="vidFrame" data-embed="">
+      <video id="explainer" controls preload="metadata" playsinline poster="media/explainer-poster.jpg">
+        <source src="media/perceptron-explainer.mp4" type="video/mp4">
+        <track kind="captions" src="media/perceptron-explainer.vtt" srclang="en" label="English">
+      </video>
+      <div class="missing" id="vidMissing"><div>Video file not found.<br>Place the <b>media</b> folder next to this page:<br><code>media/perceptron-explainer.mp4</code></div></div>
+    </div>
+    <div class="meta"><span>Narrated · on-screen captions · subtitles available (CC)</span><span>1:11</span></div>
+  </div>
+</section>
 
 <main class="board">
   <section class="panel" aria-labelledby="h-in">
@@ -337,6 +388,18 @@ function loadPreset(key){
   render();
 }
 $('preset').onchange=e=>loadPreset(e.target.value);
+
+/* ---------- explainer video: local file or hosted embed ---------- */
+(function(){
+  const frame=$('vidFrame'),url=(frame.dataset.embed||'').trim();
+  if(url){
+    const f=document.createElement('iframe');f.src=url;f.title='Perceptron explainer video';
+    f.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';f.allowFullscreen=true;f.loading='lazy';
+    frame.innerHTML='';frame.appendChild(f);return;
+  }
+  const v=$('explainer'),src=v.querySelector('source');
+  src.addEventListener('error',()=>{v.style.display='none';$('vidMissing').style.display='grid'});
+})();
 loadPreset('xo');
 </script>
 </body>
